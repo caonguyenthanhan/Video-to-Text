@@ -1,21 +1,77 @@
 "use client";
 
 import { UploadCloud, Search, CheckCircle2, AlertCircle } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function ConvertView() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [statusMsg, setStatusMsg] = useState<string>("Sẵn sàng");
+  
+  const [model, setModel] = useState("Xenova/whisper-tiny");
+  const [language, setLanguage] = useState("auto");
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const worker = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    worker.current = new Worker(new URL('../lib/worker.ts', import.meta.url), {
+      type: 'module'
+    });
+
+    worker.current.addEventListener('message', (e) => {
+      const msg = e.data;
+      switch (msg.status) {
+        case 'loading_model':
+          setStatusMsg("Đang chuẩn bị mô hình AI...");
+          break;
+        case 'download_progress':
+          if (msg.data && msg.data.progress) {
+            setStatusMsg(`Đang tải mô hình: ${Math.round(msg.data.progress)}%`);
+          }
+          break;
+        case 'ready':
+          setStatusMsg("Mô hình đã sẵn sàng");
+          break;
+        case 'transcribing':
+          setStatusMsg("Đang nhận dạng giọng nói...");
+          break;
+        case 'complete':
+          if (msg.result && msg.result.text) {
+            setTranscript(msg.result.text);
+          }
+          setStatusMsg("Đã hoàn thành");
+          setIsProcessing(false);
+          break;
+        case 'error':
+          setError(msg.message || "Lỗi xử lý");
+          setIsProcessing(false);
+          break;
+      }
+    });
+
+    return () => {
+      worker.current?.terminate();
+    };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setError("");
       setTranscript("");
+      setStatusMsg("Sẵn sàng");
     }
+  };
+
+  const extractAudio = async (file: File) => {
+    setStatusMsg("Đang tách âm thanh (có thể mất thời gian)...");
+    const arrayBuffer = await file.arrayBuffer();
+    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    return audioBuffer.getChannelData(0);
   };
 
   const handleStart = async () => {
@@ -28,25 +84,22 @@ export default function ConvertView() {
     setError("");
     setTranscript("");
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const res = await fetch("/api/transcribe", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Xảy ra lỗi khi xử lý");
+      if (file.size > 150 * 1024 * 1024) {
+        throw new Error("Kích thước file quá lớn đối với xử lý trình duyệt (Tối đa 150MB).");
       }
 
-      setTranscript(data.transcript);
+      const audioData = await extractAudio(file);
+      
+      worker.current?.postMessage({
+        type: 'transcribe',
+        audio: audioData,
+        model: model,
+        language: language
+      });
+
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -110,12 +163,29 @@ export default function ConvertView() {
           
           <div className="space-y-6">
             <div>
-              <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Engine (Đám mây)</label>
-              <select className="w-full bg-transparent border-b border-white/20 text-white py-2 text-sm font-bold focus:outline-none focus:border-[#FF3E00] appearance-none cursor-pointer">
-                <option className="bg-[#0A0A0A]">Gemini 2.5 Flash (Rất Nhanh)</option>
-                <option className="bg-[#0A0A0A]">Gemini 2.5 Pro (Chính xác cao)</option>
+              <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Mô hình AI (Trình duyệt)</label>
+              <select 
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                className="w-full bg-transparent border-b border-white/20 text-white py-2 text-sm font-bold focus:outline-none focus:border-[#FF3E00] appearance-none cursor-pointer"
+              >
+                <option value="Xenova/whisper-tiny" className="bg-[#0A0A0A]">Whisper Tiny (Rất nhanh, ~40MB)</option>
+                <option value="Xenova/whisper-base" className="bg-[#0A0A0A]">Whisper Base (Cân bằng, ~70MB)</option>
               </select>
-              <p className="text-[10px] text-white/40 mt-2 font-mono">Xử lý qua Google Gemini API.</p>
+              <p className="text-[10px] text-white/40 mt-2 font-mono">Xử lý 100% Offline bằng WebAssembly.</p>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Ngôn ngữ Video</label>
+              <select 
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full bg-transparent border-b border-white/20 text-white py-2 text-sm font-bold focus:outline-none focus:border-[#FF3E00] appearance-none cursor-pointer"
+              >
+                <option value="auto" className="bg-[#0A0A0A]">Tự động phát hiện (Auto)</option>
+                <option value="vietnamese" className="bg-[#0A0A0A]">Tiếng Việt</option>
+                <option value="english" className="bg-[#0A0A0A]">Tiếng Anh</option>
+              </select>
             </div>
           </div>
 
@@ -142,9 +212,7 @@ export default function ConvertView() {
             <div>
               <h4 className="text-[10px] font-bold tracking-widest uppercase text-white mb-1">Trạng Thái</h4>
               <p className="text-white/40 text-[10px] font-mono">
-                {isProcessing ? "Đang tải file và phân tích..." : 
-                 transcript ? "Đã hoàn thành" : 
-                 error ? "Lỗi xử lý" : "Sẵn sàng"}
+                {error ? "Lỗi xử lý" : statusMsg}
               </p>
             </div>
           </div>
