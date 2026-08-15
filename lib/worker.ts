@@ -56,6 +56,14 @@ self.addEventListener('message', async (event: MessageEvent) => {
                 stride_length_s: 5,
                 language: language === 'auto' ? null : language,
                 task: 'transcribe',
+                return_timestamps: true,
+                chunk_callback: (chunk: any) => {
+                    self.postMessage({ status: 'transcribing_chunk', chunk });
+                },
+                // Prevent hallucination and repeating loops typical in small Whisper models
+                repetition_penalty: 1.15,
+                no_repeat_ngram_size: 3,
+                temperature: 0.2
             });
 
             self.postMessage({ status: 'complete', result });

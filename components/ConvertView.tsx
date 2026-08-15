@@ -16,6 +16,7 @@ export default function ConvertView() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const worker = useRef<Worker | null>(null);
+  const durationRef = useRef<number>(0);
 
   useEffect(() => {
     worker.current = new Worker(new URL('../lib/worker.ts', import.meta.url), {
@@ -42,9 +43,22 @@ export default function ConvertView() {
         case 'transcribing':
           setStatusMsg("Đang nhận dạng giọng nói...");
           setProgress(0);
+          setTranscript("");
+          break;
+        case 'transcribing_chunk':
+          if (msg.chunk && msg.chunk.text) {
+             setTranscript(prev => prev + (prev.endsWith(' ') ? '' : ' ') + msg.chunk.text.trim());
+             if (msg.chunk.timestamp && durationRef.current > 0) {
+                const end = msg.chunk.timestamp[1];
+                const newProgress = Math.min(99, (end / durationRef.current) * 100);
+                setProgress(newProgress);
+             }
+          }
           break;
         case 'complete':
           if (msg.result && msg.result.text) {
+            // Because we stream chunks, the final text might be slightly different or same.
+            // Let's just use the final text.
             setTranscript(msg.result.text);
           }
           setStatusMsg("Đã hoàn thành");
@@ -64,28 +78,13 @@ export default function ConvertView() {
     };
   }, []);
 
-  // Fake progress effect for transcription phase
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (statusMsg === "Đang nhận dạng giọng nói...") {
-      interval = setInterval(() => {
-        setProgress(prev => {
-          const step = (95 - prev) * 0.05;
-          return prev + step > 95 ? 95 : prev + step;
-        });
-      }, 500);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [statusMsg]);
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setError("");
       setTranscript("");
       setStatusMsg("Sẵn sàng");
+      setProgress(0);
     }
   };
 
@@ -94,7 +93,23 @@ export default function ConvertView() {
     const arrayBuffer = await file.arrayBuffer();
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-    return audioBuffer.getChannelData(0);
+    const audioData = audioBuffer.getChannelData(0);
+    
+    durationRef.current = audioBuffer.duration;
+    
+    // Check if the extracted audio is completely silent
+    let isSilent = true;
+    for (let i = 0; i < Math.min(audioData.length, 16000 * 10); i++) {
+       if (audioData[i] !== 0) {
+           isSilent = false;
+           break;
+       }
+    }
+    if (isSilent) {
+        throw new Error("Không tìm thấy âm thanh trong file hoặc trình duyệt không hỗ trợ định dạng này.");
+    }
+    
+    return audioData;
   };
 
   const handleStart = async () => {
@@ -206,8 +221,8 @@ export default function ConvertView() {
                 className="w-full bg-transparent border-b border-white/20 text-white py-2 text-sm font-bold focus:outline-none focus:border-[#FF3E00] appearance-none cursor-pointer"
               >
                 <option value="auto" className="bg-[#0A0A0A]">Tự động phát hiện (Auto)</option>
-                <option value="vietnamese" className="bg-[#0A0A0A]">Tiếng Việt</option>
-                <option value="english" className="bg-[#0A0A0A]">Tiếng Anh</option>
+                <option value="vi" className="bg-[#0A0A0A]">Tiếng Việt</option>
+                <option value="en" className="bg-[#0A0A0A]">Tiếng Anh</option>
               </select>
             </div>
           </div>
