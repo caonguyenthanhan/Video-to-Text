@@ -1,41 +1,8 @@
 import { CheckCircle2, AlertCircle, Bell, Trash2, Check } from "lucide-react";
 
 export default function NotificationView() {
-  const todayNotifications = [
-    {
-      id: 1,
-      type: "success",
-      title: "Xử lý hoàn tất",
-      time: "10:45 AM",
-      description: "Video \"Hội thảo Python 2024\" đã sẵn sàng. Bạn có thể xem và tải xuống bản ghi ngay bây giờ.",
-      actionText: "Mở tệp",
-      actionLink: "#"
-    },
-    {
-      id: 2,
-      type: "error",
-      title: "Lỗi xử lý",
-      time: "08:15 AM",
-      description: "File \"Phỏng vấn_01.mp4\" gặp sự cố định dạng. Vui lòng kiểm tra lại định dạng file hoặc kích thước trước khi thử lại.",
-    }
-  ];
-
-  const pastNotifications = [
-    {
-      id: 3,
-      type: "info",
-      title: "Bản cập nhật mới",
-      time: "Hôm qua, 14:30",
-      description: "Phiên bản v2.5 hiện đã có sẵn với cải tiến model Whisper, giúp tăng độ chính xác lên đến 15% cho tiếng Việt.",
-    },
-    {
-      id: 4,
-      type: "success",
-      title: "Xử lý hoàn tất",
-      time: "12 Thg 10",
-      description: "Video \"Weekly Sync 45\" đã được chuyển đổi thành văn bản thành công.",
-    }
-  ];
+  const todayNotifications: any[] = [];
+  const pastNotifications: any[] = [];
 
   const renderIcon = (type: string) => {
     switch (type) {
@@ -56,7 +23,12 @@ export default function NotificationView() {
         <div className="h-px bg-white/20 flex-1"></div>
       </div>
       <div className="space-y-4">
-        {notifications.map((notif) => (
+        {notifications.length === 0 ? (
+          <div className="border border-white/10 p-12 text-center text-white/40 font-mono text-sm">
+            Chưa có thông báo nào.
+          </div>
+        ) : (
+          notifications.map((notif) => (
           <div 
             key={notif.id} 
             className={`border p-6 flex flex-col md:flex-row md:items-start transition-colors ${
@@ -81,7 +53,7 @@ export default function NotificationView() {
               </div>
             </div>
           </div>
-        ))}
+        )))}
       </div>
     </div>
   );

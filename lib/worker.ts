@@ -11,7 +11,8 @@ class PipelineFactory {
     static async getInstance(progress_callback: any = null) {
         if (this.instance === null) {
             this.instance = pipeline(this.task, this.model, {
-                progress_callback
+                progress_callback,
+                dtype: 'fp32' // Use fp32 to prevent q4/q8 ONNX MatMulNBits quantization errors
             });
         }
         return this.instance;

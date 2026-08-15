@@ -89,11 +89,11 @@ export default function App() {
         {/* View Container */}
         <main className="flex-1 overflow-y-auto p-12 bg-[#0A0A0A] relative">
           <div className="max-w-6xl mx-auto">
-            {currentView === "convert" && <ConvertView />}
-            {currentView === "history" && <HistoryView />}
-            {currentView === "config" && <ConfigView />}
-            {currentView === "notifications" && <NotificationView />}
-            {currentView === "help" && <HelpView />}
+            <div className={currentView === "convert" ? "block" : "hidden"}><ConvertView /></div>
+            <div className={currentView === "history" ? "block" : "hidden"}><HistoryView /></div>
+            <div className={currentView === "config" ? "block" : "hidden"}><ConfigView /></div>
+            <div className={currentView === "notifications" ? "block" : "hidden"}><NotificationView /></div>
+            <div className={currentView === "help" ? "block" : "hidden"}><HelpView /></div>
           </div>
         </main>
         

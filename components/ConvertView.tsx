@@ -9,6 +9,7 @@ export default function ConvertView() {
   const [transcript, setTranscript] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [statusMsg, setStatusMsg] = useState<string>("Sẵn sàng");
+  const [progress, setProgress] = useState<number>(0);
   
   const [model, setModel] = useState("Xenova/whisper-tiny");
   const [language, setLanguage] = useState("auto");
@@ -26,28 +27,34 @@ export default function ConvertView() {
       switch (msg.status) {
         case 'loading_model':
           setStatusMsg("Đang chuẩn bị mô hình AI...");
+          setProgress(0);
           break;
         case 'download_progress':
           if (msg.data && msg.data.progress) {
             setStatusMsg(`Đang tải mô hình: ${Math.round(msg.data.progress)}%`);
+            setProgress(Math.round(msg.data.progress));
           }
           break;
         case 'ready':
           setStatusMsg("Mô hình đã sẵn sàng");
+          setProgress(100);
           break;
         case 'transcribing':
           setStatusMsg("Đang nhận dạng giọng nói...");
+          setProgress(0);
           break;
         case 'complete':
           if (msg.result && msg.result.text) {
             setTranscript(msg.result.text);
           }
           setStatusMsg("Đã hoàn thành");
+          setProgress(100);
           setIsProcessing(false);
           break;
         case 'error':
           setError(msg.message || "Lỗi xử lý");
           setIsProcessing(false);
+          setProgress(0);
           break;
       }
     });
@@ -56,6 +63,22 @@ export default function ConvertView() {
       worker.current?.terminate();
     };
   }, []);
+
+  // Fake progress effect for transcription phase
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (statusMsg === "Đang nhận dạng giọng nói...") {
+      interval = setInterval(() => {
+        setProgress(prev => {
+          const step = (95 - prev) * 0.05;
+          return prev + step > 95 ? 95 : prev + step;
+        });
+      }, 500);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [statusMsg]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -218,12 +241,17 @@ export default function ConvertView() {
           </div>
           <div className="w-1/2 flex items-center justify-end space-x-6">
             {isProcessing && (
-              <span className="text-[#FF3E00] text-[10px] uppercase font-bold tracking-widest animate-pulse">
-                Đang xử lý...
-              </span>
+              <>
+                <div className="flex-1 h-1 bg-white/10 hidden md:block">
+                  <div className="h-full bg-[#FF3E00] transition-all duration-300" style={{ width: `${Math.round(progress)}%` }}></div>
+                </div>
+                <span className="text-[#FF3E00] font-black w-12 text-right">
+                  {Math.round(progress)}%
+                </span>
+              </>
             )}
             {error && <AlertCircle className="w-6 h-6 text-red-500" />}
-            {transcript && <CheckCircle2 className="w-6 h-6 text-[#FF3E00]" />}
+            {transcript && !isProcessing && <CheckCircle2 className="w-6 h-6 text-[#FF3E00]" />}
           </div>
         </div>
 

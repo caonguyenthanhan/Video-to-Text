@@ -1,35 +1,7 @@
 import { History, Clock, HardDrive, Filter, FileText, CheckCircle2, AlertCircle, RotateCcw, Search } from "lucide-react";
 
 export default function HistoryView() {
-  const records = [
-    {
-      id: 1,
-      title: "huong-dan-python-co...",
-      date: "15/10/2023",
-      time: "14:30",
-      duration: "45:20",
-      status: "success",
-      snippet: "\"Chào các bạn, hôm...\"",
-    },
-    {
-      id: 2,
-      title: "cuoc-hop-thang-10-...",
-      date: "14/10/2023",
-      time: "09:15",
-      duration: "01:12:45",
-      status: "success",
-      snippet: "\"Ok, agenda hôm nay...\"",
-    },
-    {
-      id: 3,
-      title: "phong-van-ung-vien-loi-...",
-      date: "12/10/2023",
-      time: "16:00",
-      duration: "--:--",
-      status: "error",
-      errorMsg: "Lỗi: File audio không đúng định dạng hoặc bị hỏng.",
-    }
-  ];
+  const records: any[] = [];
 
   return (
     <div className="space-y-8">
@@ -87,7 +59,12 @@ export default function HistoryView() {
 
       {/* Record Grid */}
       <div className="grid grid-cols-1 gap-6">
-        {records.map((record, idx) => (
+        {records.length === 0 ? (
+          <div className="border border-white/10 p-12 text-center text-white/40 font-mono text-sm">
+            Chưa có lịch sử xử lý nào.
+          </div>
+        ) : (
+          records.map((record, idx) => (
           <div key={record.id} className="border border-white/10 p-6 hover:border-[#FF3E00]/50 transition-colors group flex items-start justify-between">
             <div className="flex items-start max-w-2xl">
               <div className="text-[24px] font-black text-white/20 mr-8 mt-1 group-hover:text-[#FF3E00] transition-colors">
@@ -109,7 +86,7 @@ export default function HistoryView() {
                 </div>
 
                 {record.status === 'success' ? (
-                  <p className="text-sm text-[#E0E0E0] italic">"{record.snippet}"</p>
+                  <p className="text-sm text-[#E0E0E0] italic">&quot;{record.snippet}&quot;</p>
                 ) : (
                   <div className="mt-2">
                     <p className="text-sm text-red-400 mb-4">{record.errorMsg}</p>
@@ -127,7 +104,7 @@ export default function HistoryView() {
               </button>
             )}
           </div>
-        ))}
+        )))}
       </div>
     </div>
   );
