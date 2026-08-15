@@ -1,0 +1,37 @@
+Cấu trúc dự án: D:\desktop\Video-to-Text
+Quét lúc: 2026-08-15T22:36:36.186702
+
+[VENDORED] .git
+[VENDORED] build
+[VENDORED] dist
+ .env.example
+ .eslintrc.json
+ .gitignore
+ app.js
+ backend.py
+ build.bat
+ eslint.config.mjs
+ index.html
+ metadata.json
+ next-env.d.ts
+ next.config.ts
+ package.json
+ postcss.config.mjs
+ SPEC.md
+ style.css
+ tree_scan_result.json
+ tree_scan_result.txt
+ tsconfig.json
+ VideoToText.spec
+ video_to_text.py
+ app\globals.css
+ app\layout.tsx
+ app\page.tsx
+ assets\.aistudio\.gitignore
+ components\ConfigView.tsx
+ components\ConvertView.tsx
+ components\HelpView.tsx
+ components\HistoryView.tsx
+ components\NotificationView.tsx
+ hooks\use-mobile.ts
+ lib\utils.ts

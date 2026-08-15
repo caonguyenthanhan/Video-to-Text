@@ -1,0 +1,179 @@
+{
+  "root": "D:\\desktop\\Video-to-Text",
+  "generated_at": "2026-08-15T22:36:36.186702",
+  "entries": [
+    {
+      "path": ".git",
+      "type": "dir",
+      "vendored": true,
+      "note": "không quét sâu (vendored/operational)"
+    },
+    {
+      "path": "build",
+      "type": "dir",
+      "vendored": true,
+      "note": "không quét sâu (vendored/operational)"
+    },
+    {
+      "path": "dist",
+      "type": "dir",
+      "vendored": true,
+      "note": "không quét sâu (vendored/operational)"
+    },
+    {
+      "path": ".env.example",
+      "type": "file",
+      "size": 454
+    },
+    {
+      "path": ".eslintrc.json",
+      "type": "file",
+      "size": 27
+    },
+    {
+      "path": ".gitignore",
+      "type": "file",
+      "size": 74
+    },
+    {
+      "path": "app.js",
+      "type": "file",
+      "size": 2580
+    },
+    {
+      "path": "backend.py",
+      "type": "file",
+      "size": 5769
+    },
+    {
+      "path": "build.bat",
+      "type": "file",
+      "size": 1213
+    },
+    {
+      "path": "eslint.config.mjs",
+      "type": "file",
+      "size": 325
+    },
+    {
+      "path": "index.html",
+      "type": "file",
+      "size": 1465
+    },
+    {
+      "path": "metadata.json",
+      "type": "file",
+      "size": 145
+    },
+    {
+      "path": "next-env.d.ts",
+      "type": "file",
+      "size": 268
+    },
+    {
+      "path": "next.config.ts",
+      "type": "file",
+      "size": 909
+    },
+    {
+      "path": "package.json",
+      "type": "file",
+      "size": 1011
+    },
+    {
+      "path": "postcss.config.mjs",
+      "type": "file",
+      "size": 177
+    },
+    {
+      "path": "SPEC.md",
+      "type": "file",
+      "size": 6919
+    },
+    {
+      "path": "style.css",
+      "type": "file",
+      "size": 888
+    },
+    {
+      "path": "tree_scan_result.json",
+      "type": "file",
+      "size": 3218
+    },
+    {
+      "path": "tree_scan_result.txt",
+      "type": "file",
+      "size": 676
+    },
+    {
+      "path": "tsconfig.json",
+      "type": "file",
+      "size": 646
+    },
+    {
+      "path": "VideoToText.spec",
+      "type": "file",
+      "size": 711
+    },
+    {
+      "path": "video_to_text.py",
+      "type": "file",
+      "size": 7568
+    },
+    {
+      "path": "app\\globals.css",
+      "type": "file",
+      "size": 24
+    },
+    {
+      "path": "app\\layout.tsx",
+      "type": "file",
+      "size": 721
+    },
+    {
+      "path": "app\\page.tsx",
+      "type": "file",
+      "size": 5431
+    },
+    {
+      "path": "assets\\.aistudio\\.gitignore",
+      "type": "file",
+      "size": 3
+    },
+    {
+      "path": "components\\ConfigView.tsx",
+      "type": "file",
+      "size": 11473
+    },
+    {
+      "path": "components\\ConvertView.tsx",
+      "type": "file",
+      "size": 9075
+    },
+    {
+      "path": "components\\HelpView.tsx",
+      "type": "file",
+      "size": 6061
+    },
+    {
+      "path": "components\\HistoryView.tsx",
+      "type": "file",
+      "size": 6133
+    },
+    {
+      "path": "components\\NotificationView.tsx",
+      "type": "file",
+      "size": 4500
+    },
+    {
+      "path": "hooks\\use-mobile.ts",
+      "type": "file",
+      "size": 584
+    },
+    {
+      "path": "lib\\utils.ts",
+      "type": "file",
+      "size": 172
+    }
+  ]
+}

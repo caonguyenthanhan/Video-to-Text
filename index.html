@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Video -> Text</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Video &rarr; Text</h1>
+
+  <section class="row">
+    <button id="btnChoose">Chọn video...</button>
+    <span id="fileName" class="muted">Chưa chọn video</span>
+  </section>
+
+  <section class="row">
+    <label>
+      Model:
+      <select id="model">
+        <option value="tiny">tiny</option>
+        <option value="base">base</option>
+        <option value="small" selected>small</option>
+        <option value="medium">medium</option>
+        <option value="large-v3">large-v3</option>
+      </select>
+    </label>
+
+    <label>
+      Ngôn ngữ:
+      <select id="language">
+        <option value="auto" selected>auto</option>
+        <option value="vi">vi</option>
+        <option value="en">en</option>
+        <option value="ja">ja</option>
+        <option value="ko">ko</option>
+        <option value="zh">zh</option>
+      </select>
+    </label>
+  </section>
+
+  <section class="row">
+    <button id="btnStart" disabled>Bắt đầu nhận dạng</button>
+  </section>
+
+  <p id="status" class="muted"></p>
+
+  <textarea id="output" rows="16" readonly placeholder="Văn bản sẽ hiện ở đây..."></textarea>
+
+  <section class="row">
+    <button id="btnCopy" disabled>Copy</button>
+    <button id="btnSave" disabled>Lưu .txt</button>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
