@@ -10,6 +10,7 @@ export default function ConvertView() {
   const [error, setError] = useState<string>("");
   const [statusMsg, setStatusMsg] = useState<string>("Sẵn sàng");
   const [progress, setProgress] = useState<number>(0);
+  const [isCorrecting, setIsCorrecting] = useState(false);
   
   const [model, setModel] = useState("Xenova/whisper-tiny");
   const [language, setLanguage] = useState("auto");
@@ -160,6 +161,39 @@ export default function ConvertView() {
     }
   };
 
+  const handleCorrect = async () => {
+    if (!transcript) return;
+    
+    setIsCorrecting(true);
+    setStatusMsg("Đang nhờ AI hiệu đính văn bản...");
+    
+    try {
+      const res = await fetch('/api/correct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transcript }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Lỗi hiệu đính");
+      }
+      
+      if (data.correctedTranscript) {
+        setTranscript(data.correctedTranscript);
+        setStatusMsg("Hiệu đính hoàn tất");
+      }
+    } catch (err: any) {
+      setError(err.message);
+      setStatusMsg("Lỗi hiệu đính");
+    } finally {
+      setIsCorrecting(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
       {/* Left Column - Controls */}
@@ -297,6 +331,12 @@ export default function ConvertView() {
               </div>
             )}
 
+            {isCorrecting && (
+              <div className="text-[#FF3E00] font-mono text-xs animate-pulse mb-4">
+                Đang nhờ AI hiệu đính lỗi chính tả, vui lòng đợi...
+              </div>
+            )}
+
             {transcript && (
               <p className="whitespace-pre-wrap">{transcript}</p>
             )}
@@ -309,16 +349,23 @@ export default function ConvertView() {
             </div>
             <div className="flex items-center space-x-4">
               <button 
+                onClick={handleCorrect}
+                disabled={!transcript || isProcessing || isCorrecting}
+                className="text-[10px] font-bold text-[#FF3E00] uppercase tracking-widest hover:text-white transition-colors disabled:text-[#FF3E00]/20 disabled:hover:text-[#FF3E00]/20 border border-[#FF3E00]/50 hover:bg-[#FF3E00] px-4 py-2 disabled:border-[#FF3E00]/10 disabled:bg-transparent"
+              >
+                {isCorrecting ? "Đang sửa..." : "Sửa lỗi bằng AI"}
+              </button>
+              <button 
                 onClick={handleCopy}
-                disabled={!transcript}
-                className="text-[10px] font-bold text-white uppercase tracking-widest hover:text-[#FF3E00] transition-colors disabled:text-white/20 disabled:hover:text-white/20"
+                disabled={!transcript || isCorrecting}
+                className="text-[10px] font-bold text-white uppercase tracking-widest hover:text-[#FF3E00] transition-colors disabled:text-white/20 disabled:hover:text-white/20 px-2"
               >
                 Sao chép
               </button>
               <button 
                 onClick={handleSaveTxt}
-                disabled={!transcript}
-                className="text-[10px] font-bold text-white uppercase tracking-widest hover:text-[#FF3E00] transition-colors disabled:text-white/20 disabled:hover:text-white/20"
+                disabled={!transcript || isCorrecting}
+                className="text-[10px] font-bold text-white uppercase tracking-widest hover:text-[#FF3E00] transition-colors disabled:text-white/20 disabled:hover:text-white/20 px-2"
               >
                 Lưu TXT
               </button>
