@@ -10,12 +10,14 @@ html.light-mode .bg-\[\#0A0A0A\] {
   background-color: #f8fafc !important;
 }
 
-html.light-mode .bg-\[\#0F0F0F\] {
+html.light-mode .bg-\[\#0F0F0F\],
+html.light-mode .bg-\[\#050505\] {
   background-color: #f1f5f9 !important;
 }
 
 html.light-mode .text-\[\#E0E0E0\],
-html.light-mode .text-white {
+html.light-mode .text-white,
+html.light-mode .text-white\/80 {
   color: #0f172a !important;
 }
 
@@ -23,7 +25,8 @@ html.light-mode .text-white\/60 {
   color: #475569 !important;
 }
 
-html.light-mode .text-white\/40 {
+html.light-mode .text-white\/40,
+html.light-mode .text-white\/30 {
   color: #64748b !important;
 }
 

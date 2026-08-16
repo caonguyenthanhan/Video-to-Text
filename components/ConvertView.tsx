@@ -1,8 +1,16 @@
 "use client";
 
-import { UploadCloud, Search, CheckCircle2, AlertCircle } from "lucide-react";
+import { UploadCloud, Search, CheckCircle2, AlertCircle, Terminal } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import RichEditor from "./RichEditor";
+
+interface LogMessage {
+  id: string;
+  timestamp: Date;
+  level: 'info' | 'success' | 'error' | 'warning';
+  text: string;
+  detail?: string;
+}
 
 export default function ConvertView() {
   const [file, setFile] = useState<File | null>(null);
@@ -13,6 +21,26 @@ export default function ConvertView() {
   const [progress, setProgress] = useState<number>(0);
   const [isCorrecting, setIsCorrecting] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [logs, setLogs] = useState<LogMessage[]>([]);
+  const logsEndRef = useRef<HTMLDivElement>(null);
+
+  const addLog = (level: LogMessage['level'], text: string, detail?: string) => {
+    setLogs(prev => [...prev, {
+      id: Math.random().toString(36).substring(7),
+      timestamp: new Date(),
+      level,
+      text,
+      detail
+    }]);
+  };
+
+  const scrollToBottom = () => {
+    logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [logs]);
   
   const [model, setModel] = useState("Xenova/whisper-tiny");
   const [language, setLanguage] = useState("auto");
@@ -64,46 +92,53 @@ export default function ConvertView() {
         case 'loading_model':
           setStatusMsg("Đang chuẩn bị mô hình AI...");
           setProgress(0);
+          addLog('info', 'Đang nạp mô hình AI (Model weights)...');
           break;
         case 'download_progress':
           if (msg.data && msg.data.progress) {
             setStatusMsg(`Đang tải mô hình: ${Math.round(msg.data.progress)}%`);
             setProgress(Math.round(msg.data.progress));
+            if (msg.data.progress === 100) {
+              addLog('success', 'Tải mô hình hoàn tất.');
+            }
           }
           break;
         case 'ready':
           setStatusMsg("Mô hình đã sẵn sàng");
           setProgress(100);
+          addLog('success', 'Khởi tạo pipeline nhận dạng thành công.');
           break;
         case 'transcribing':
           setStatusMsg("Đang nhận dạng giọng nói...");
           setProgress(0);
           setTranscript("");
+          addLog('info', 'Bắt đầu luồng trích xuất âm thanh (STT Engine Start)...');
           break;
         case 'transcribing_chunk':
           if (msg.chunk && msg.chunk.text) {
              setTranscript(prev => prev + (prev.endsWith(' ') ? '' : ' ') + msg.chunk.text.trim());
              if (msg.chunk.timestamp && durationRef.current > 0) {
-                const end = msg.chunk.timestamp[1];
+                const end = msg.chunk.timestamp[1] || durationRef.current;
                 const newProgress = Math.min(99, (end / durationRef.current) * 100);
                 setProgress(newProgress);
+                addLog('info', `Đã xử lý chunk [${msg.chunk.timestamp[0].toFixed(2)}s - ${end.toFixed(2)}s]`, `"${msg.chunk.text.trim()}"`);
              }
           }
           break;
         case 'complete':
           if (msg.result && msg.result.text) {
-            // Because we stream chunks, the final text might be slightly different or same.
-            // Let's just use the final text.
             setTranscript(msg.result.text);
           }
           setStatusMsg("Đã hoàn thành");
           setProgress(100);
           setIsProcessing(false);
+          addLog('success', 'Hoàn tất quá trình giải mã âm thanh.');
           break;
         case 'error':
           setError(msg.message || "Lỗi xử lý");
           setIsProcessing(false);
           setProgress(0);
+          addLog('error', 'STT Engine gặp lỗi ngoại lệ.', msg.message);
           break;
       }
     });
@@ -152,6 +187,7 @@ export default function ConvertView() {
 
   const extractAudio = async (file: File) => {
     setStatusMsg("Đang tách âm thanh (có thể mất thời gian)...");
+    addLog('info', 'Bắt đầu trích xuất âm thanh từ file (Audio extraction)...');
     const arrayBuffer = await file.arrayBuffer();
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
@@ -171,6 +207,7 @@ export default function ConvertView() {
         throw new Error("Không tìm thấy âm thanh trong file hoặc trình duyệt không hỗ trợ định dạng này.");
     }
     
+    addLog('success', `Đã trích xuất xong ${durationRef.current.toFixed(2)}s âm thanh ở tần số 16kHz.`);
     return audioData;
   };
 
@@ -183,6 +220,8 @@ export default function ConvertView() {
     setIsProcessing(true);
     setError("");
     setTranscript("");
+    setLogs([]); // Reset logs
+    addLog('info', `Bắt đầu tiến trình (Pipeline initialized): ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
 
     try {
       if (file.size > 150 * 1024 * 1024) {
@@ -191,6 +230,7 @@ export default function ConvertView() {
 
       const audioData = await extractAudio(file);
       
+      addLog('info', `Gửi dữ liệu âm thanh tới Web Worker... (Model: ${model})`);
       worker.current?.postMessage({
         type: 'transcribe',
         audio: audioData,
@@ -229,6 +269,7 @@ export default function ConvertView() {
     
     setIsCorrecting(true);
     setStatusMsg("Đang nhờ AI hiệu đính văn bản...");
+    addLog('info', 'Bắt đầu gửi yêu cầu hiệu đính văn bản tới Gemini AI...');
     
     try {
       const plainText = transcript.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
@@ -249,10 +290,12 @@ export default function ConvertView() {
       if (data.correctedTranscript) {
         setTranscript(data.correctedTranscript);
         setStatusMsg("Hiệu đính hoàn tất");
+        addLog('success', 'Gemini đã hiệu đính xong văn bản (Confidence > 0.95).');
       }
     } catch (err: any) {
       setError(err.message);
       setStatusMsg("Lỗi hiệu đính");
+      addLog('error', 'Lỗi API hiệu đính', err.message);
     } finally {
       setIsCorrecting(false);
     }
@@ -479,6 +522,52 @@ export default function ConvertView() {
             </div>
           </div>
         </div>
+
+        {/* Pipeline Logs Card */}
+        <div className="border border-white/20 flex flex-col min-h-[250px] max-h-[300px] bg-[#050505]">
+          <div className="px-8 py-4 border-b border-white/20 flex items-center shrink-0 space-x-3">
+            <Terminal className="w-4 h-4 text-white/40" />
+            <div className="font-black text-sm text-white uppercase tracking-widest">
+              Pipeline Logs
+            </div>
+          </div>
+          <div className="p-6 overflow-y-auto flex-1 font-mono text-xs space-y-3">
+            {logs.length === 0 ? (
+              <div className="text-white/20 italic">
+                Chưa có luồng dữ liệu nào chạy...
+              </div>
+            ) : (
+              logs.map((log) => (
+                <div key={log.id} className="flex flex-col space-y-1">
+                  <div className="flex space-x-4">
+                    <span className="text-white/30 shrink-0">
+                      [{log.timestamp.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 })}]
+                    </span>
+                    <span className={`shrink-0 uppercase font-bold w-12 ${
+                      log.level === 'info' ? 'text-blue-400' :
+                      log.level === 'success' ? 'text-[#FF3E00]' :
+                      log.level === 'error' ? 'text-red-500' : 'text-yellow-500'
+                    }`}>
+                      {log.level}
+                    </span>
+                    <span className={`${
+                      log.level === 'error' ? 'text-red-400' : 'text-white/80'
+                    }`}>
+                      {log.text}
+                    </span>
+                  </div>
+                  {log.detail && (
+                    <div className="pl-[120px] text-white/40 text-[10px]">
+                      {log.detail}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+            <div ref={logsEndRef} />
+          </div>
+        </div>
+
       </div>
     </div>
   );
