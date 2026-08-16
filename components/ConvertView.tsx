@@ -243,6 +243,7 @@ export default function ConvertView() {
               >
                 <option value="Xenova/whisper-tiny" className="bg-[#0A0A0A]">Whisper Tiny (Rất nhanh, ~40MB)</option>
                 <option value="Xenova/whisper-base" className="bg-[#0A0A0A]">Whisper Base (Cân bằng, ~70MB)</option>
+                <option value="Xenova/whisper-small" className="bg-[#0A0A0A]">Whisper Small (Độ chuẩn cao, ~250MB)</option>
               </select>
               <p className="text-[10px] text-white/40 mt-2 font-mono">Xử lý 100% Offline bằng WebAssembly.</p>
             </div>
