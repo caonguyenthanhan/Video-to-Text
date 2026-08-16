@@ -2,6 +2,7 @@
 
 import { UploadCloud, Search, CheckCircle2, AlertCircle } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import RichEditor from "./RichEditor";
 
 export default function ConvertView() {
   const [file, setFile] = useState<File | null>(null);
@@ -11,6 +12,7 @@ export default function ConvertView() {
   const [statusMsg, setStatusMsg] = useState<string>("Sẵn sàng");
   const [progress, setProgress] = useState<number>(0);
   const [isCorrecting, setIsCorrecting] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   const [model, setModel] = useState("Xenova/whisper-tiny");
   const [language, setLanguage] = useState("auto");
@@ -18,6 +20,30 @@ export default function ConvertView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const worker = useRef<Worker | null>(null);
   const durationRef = useRef<number>(0);
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Khôi phục bản nháp (draft) từ localStorage khi khởi động
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('transcript_draft');
+    if (savedDraft) {
+      setTranscript(savedDraft);
+    }
+  }, []);
+
+  // Tự động lưu bản nháp sau mỗi 1.5 giây khi có thay đổi
+  useEffect(() => {
+    if (!transcript) return;
+    
+    const handler = setTimeout(() => {
+      localStorage.setItem('transcript_draft', transcript);
+      setLastSaved(new Date());
+    }, 1500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [transcript]);
 
   useEffect(() => {
     worker.current = new Worker(new URL('../lib/worker.ts', import.meta.url), {
@@ -89,6 +115,33 @@ export default function ConvertView() {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const droppedFile = e.dataTransfer.files[0];
+      if (droppedFile.type.startsWith('video/') || droppedFile.type.startsWith('audio/')) {
+        setFile(droppedFile);
+        setError("");
+        setTranscript("");
+        setStatusMsg("Sẵn sàng");
+        setProgress(0);
+      } else {
+        setError("Vui lòng chọn file định dạng video hoặc audio.");
+      }
+    }
+  };
+
   const extractAudio = async (file: File) => {
     setStatusMsg("Đang tách âm thanh (có thể mất thời gian)...");
     const arrayBuffer = await file.arrayBuffer();
@@ -145,13 +198,15 @@ export default function ConvertView() {
 
   const handleCopy = () => {
     if (transcript) {
-      navigator.clipboard.writeText(transcript);
+      const plainText = transcript.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+      navigator.clipboard.writeText(plainText);
     }
   };
 
   const handleSaveTxt = () => {
     if (transcript) {
-      const blob = new Blob([transcript], { type: "text/plain" });
+      const plainText = transcript.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+      const blob = new Blob([plainText], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -168,12 +223,13 @@ export default function ConvertView() {
     setStatusMsg("Đang nhờ AI hiệu đính văn bản...");
     
     try {
+      const plainText = transcript.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
       const res = await fetch('/api/correct', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ transcript }),
+        body: JSON.stringify({ transcript: plainText }),
       });
       
       const data = await res.json();
@@ -194,14 +250,42 @@ export default function ConvertView() {
     }
   };
 
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isCmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      if (isCmdOrCtrl) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (file && !isProcessing) {
+            handleStart();
+          }
+        } else if (e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          if (transcript && !isCorrecting) {
+            handleSaveTxt();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [file, isProcessing, transcript, isCorrecting, handleStart, handleSaveTxt]);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
       {/* Left Column - Controls */}
       <div className="lg:col-span-4 space-y-6">
         {/* Upload Card */}
         <div 
-          className="border border-white/20 p-8 flex flex-col items-center justify-center text-center space-y-6 relative group overflow-hidden cursor-pointer"
+          className={`border p-8 flex flex-col items-center justify-center text-center space-y-6 relative group overflow-hidden cursor-pointer transition-colors ${isDragging ? 'border-[#FF3E00] bg-[#FF3E00]/5' : 'border-white/20'}`}
           onClick={() => fileInputRef.current?.click()}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
           <input 
             type="file" 
@@ -271,7 +355,7 @@ export default function ConvertView() {
                 : "border border-white/20 hover:border-[#FF3E00] hover:bg-[#FF3E00] hover:text-white text-white"
             }`}
           >
-            {isProcessing ? "Đang xử lý..." : "Bắt đầu nhận dạng"}
+            {isProcessing ? "Đang xử lý..." : "Bắt đầu nhận dạng (Ctrl+Enter)"}
           </button>
         </div>
       </div>
@@ -339,14 +423,28 @@ export default function ConvertView() {
             )}
 
             {transcript && (
-              <p className="whitespace-pre-wrap">{transcript}</p>
+              <div className="w-full h-full min-h-[400px]">
+                <RichEditor
+                  value={transcript}
+                  onChange={setTranscript}
+                  className="w-full h-full min-h-[400px]"
+                />
+              </div>
             )}
           </div>
 
           {/* Footer Controls */}
           <div className="px-8 py-6 border-t border-white/20 flex items-center justify-between bg-[#0A0A0A] shrink-0">
             <div className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center space-x-4">
-              <span>{transcript.length > 0 ? transcript.split(/\s+/).length : 0} Từ</span>
+              <span>{transcript.length > 0 ? transcript.replace(/<[^>]+>/g, '').trim().split(/\s+/).filter(Boolean).length : 0} Từ</span>
+              {lastSaved && (
+                <>
+                  <span className="w-1 h-1 bg-white/20 rounded-full"></span>
+                  <span className="text-white/40">
+                    Đã lưu bản nháp <span className="text-[#FF3E00]">{lastSaved.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                  </span>
+                </>
+              )}
             </div>
             <div className="flex items-center space-x-4">
               <button 
@@ -368,7 +466,7 @@ export default function ConvertView() {
                 disabled={!transcript || isCorrecting}
                 className="text-[10px] font-bold text-white uppercase tracking-widest hover:text-[#FF3E00] transition-colors disabled:text-white/20 disabled:hover:text-white/20 px-2"
               >
-                Lưu TXT
+                Lưu TXT (Ctrl+S)
               </button>
             </div>
           </div>

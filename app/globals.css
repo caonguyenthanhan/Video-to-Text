@@ -1,1 +1,133 @@
 @import "tailwindcss";
+
+/* LIGHT MODE OVERRIDES */
+html.light-mode body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light-mode .bg-\[\#0A0A0A\] {
+  background-color: #f8fafc !important;
+}
+
+html.light-mode .bg-\[\#0F0F0F\] {
+  background-color: #f1f5f9 !important;
+}
+
+html.light-mode .text-\[\#E0E0E0\],
+html.light-mode .text-white {
+  color: #0f172a !important;
+}
+
+html.light-mode .text-white\/60 {
+  color: #475569 !important;
+}
+
+html.light-mode .text-white\/40 {
+  color: #64748b !important;
+}
+
+html.light-mode .text-white\/20 {
+  color: #94a3b8 !important;
+}
+
+html.light-mode .border-white\/20,
+html.light-mode .border-white\/10,
+html.light-mode .border-white\/5 {
+  border-color: #cbd5e1 !important;
+}
+
+html.light-mode .bg-white\/10 {
+  background-color: #cbd5e1 !important;
+}
+
+html.light-mode .bg-white\/5 {
+  background-color: #e2e8f0 !important;
+}
+
+html.light-mode .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+
+html.light-mode .hover\:bg-white\/5:hover {
+  background-color: #cbd5e1 !important;
+}
+
+html.light-mode .hover\:bg-white:hover {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* Theme classes for ConfigView specific tweaks */
+html.light-mode .theme-bg {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light-mode .theme-border-active {
+  border-color: #0f172a !important;
+}
+
+/* QUILL EDITOR DARK MODE CUSTOMIZATION */
+.quill-custom-wrapper .ql-toolbar.ql-snow {
+  border: 1px solid rgba(255,255,255,0.2);
+  border-bottom: none;
+  font-family: inherit;
+  border-radius: 4px 4px 0 0;
+  padding: 12px;
+}
+
+.quill-custom-wrapper .ql-container.ql-snow {
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 0 0 4px 4px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.quill-custom-wrapper .ql-editor {
+  min-height: 400px;
+  line-height: 1.8;
+}
+
+/* Icons */
+.quill-custom-wrapper .ql-snow .ql-stroke {
+  stroke: rgba(255,255,255,0.6);
+}
+.quill-custom-wrapper .ql-snow .ql-fill, .quill-custom-wrapper .ql-snow .ql-stroke.ql-fill {
+  fill: rgba(255,255,255,0.6);
+}
+.quill-custom-wrapper .ql-snow .ql-picker {
+  color: rgba(255,255,255,0.6);
+}
+
+/* Hover/Active */
+.quill-custom-wrapper .ql-snow.ql-toolbar button:hover .ql-stroke,
+.quill-custom-wrapper .ql-snow .ql-toolbar button:hover .ql-stroke,
+.quill-custom-wrapper .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.quill-custom-wrapper .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+  stroke: #FF3E00 !important;
+}
+
+.quill-custom-wrapper .ql-snow.ql-toolbar button:hover .ql-fill,
+.quill-custom-wrapper .ql-snow .ql-toolbar button:hover .ql-fill,
+.quill-custom-wrapper .ql-snow.ql-toolbar button.ql-active .ql-fill,
+.quill-custom-wrapper .ql-snow .ql-toolbar button.ql-active .ql-fill {
+  fill: #FF3E00 !important;
+}
+
+/* Light mode overrides for Quill */
+html.light-mode .quill-custom-wrapper .ql-toolbar.ql-snow,
+html.light-mode .quill-custom-wrapper .ql-container.ql-snow {
+  border-color: #cbd5e1;
+}
+
+html.light-mode .quill-custom-wrapper .ql-snow .ql-stroke {
+  stroke: #64748b;
+}
+html.light-mode .quill-custom-wrapper .ql-snow .ql-fill, 
+html.light-mode .quill-custom-wrapper .ql-snow .ql-stroke.ql-fill {
+  fill: #64748b;
+}
+html.light-mode .quill-custom-wrapper .ql-snow .ql-picker {
+  color: #64748b;
+}
