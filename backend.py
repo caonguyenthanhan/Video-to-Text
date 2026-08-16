@@ -125,7 +125,14 @@ class Api:
                 self._state["status"] = "Đang nhận dạng giọng nói..."
 
             lang = None if language == "auto" else language
-            segments, info = model.transcribe(video_path, language=lang)
+            segments, info = model.transcribe(
+                video_path,
+                language=lang,
+                vad_filter=True,
+                vad_parameters=dict(min_silence_duration_ms=500),
+                condition_on_previous_text=False,
+                beam_size=5,
+            )
 
             full_text = ""
             for segment in segments:

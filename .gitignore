@@ -5,3 +5,12 @@ coverage/
 *.log
 .env*
 !.env.example
+out/
+build/
+dist/
+package-lock.json
+*.gguf
+__pycache__/
+stt_corrector/models/
+case/result_graph_corrected.txt
+*.mp4

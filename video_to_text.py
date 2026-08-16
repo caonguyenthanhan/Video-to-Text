@@ -134,7 +134,14 @@ class TranscriberApp:
             model = WhisperModel(model_size, device="cpu", compute_type="int8")
 
             self.result_queue.put(("status", "Đang nhận dạng giọng nói..."))
-            segments, info = model.transcribe(self.video_path, language=language)
+            segments, info = model.transcribe(
+                self.video_path,
+                language=language,
+                vad_filter=True,
+                vad_parameters=dict(min_silence_duration_ms=500),
+                condition_on_previous_text=False,
+                beam_size=5,
+            )
 
             for segment in segments:
                 self.result_queue.put(("append", segment.text.strip() + " "))

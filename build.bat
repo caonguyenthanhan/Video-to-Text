@@ -1,35 +1,38 @@
 @echo off
-REM Build backend.py + thu muc web/ thanh 1 file .exe (Windows)
-REM Yeu cau: da cai Python, va cau truc thu muc nhu sau (cung cap voi file nay):
-REM   backend.py
-REM   web\index.html
-REM   web\app.js
-REM   web\style.css
-REM   build.bat   <-- file nay
+REM Build Desktop App (.exe) từ Next.js và desktop_app.py
 
 echo ============================================
-echo   Dang cai dat cac thu vien can thiet...
+echo   1. Cai dat cac thu vien Python
 echo ============================================
-pip install --upgrade pyinstaller pywebview faster-whisper
+pip install --upgrade pyinstaller pywebview faster-whisper fastapi uvicorn python-multipart
 
 echo.
 echo ============================================
-echo   Dang build file .exe...
-echo   (--add-data de nhung thu muc web/ vao ben trong exe)
+echo   2. Build Next.js (Xuat HTML tinh)
 echo ============================================
+call npm install
+call npm run build
+
+echo.
+echo ============================================
+echo   3. Dong goi thanh .exe (PyInstaller)
+echo ============================================
+REM --add-data "out;out" de nhung thu muc HTML vao ben trong exe
 pyinstaller --onefile --windowed --name VideoToText ^
-  --add-data "web;web" ^
+  --add-data "out;out" ^
   --hidden-import webview.platforms.edgechromium ^
-  backend.py
+  --exclude-module PyQt5 ^
+  --exclude-module PyQt6 ^
+  --exclude-module PySide2 ^
+  --exclude-module PySide6 ^
+  desktop_app.py
 
 echo.
 echo ============================================
 echo   Hoan tat!
 echo   File exe nam trong thu muc: dist\VideoToText.exe
 echo.
-echo   Luu y: may chay file exe can co san
-echo   Microsoft Edge WebView2 Runtime (Windows 10/11 moi
-echo   thuong da co san). Neu chua co, tai tai:
-echo   https://developer.microsoft.com/microsoft-edge/webview2/
+echo   Luu y: May chay file exe can Microsoft Edge WebView2
+echo   va phai duoc cai dat ffmpeg trong PATH.
 echo ============================================
 pause

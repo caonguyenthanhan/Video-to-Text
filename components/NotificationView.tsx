@@ -1,41 +1,8 @@
 import { CheckCircle2, AlertCircle, Bell, Trash2, Check } from "lucide-react";
 
 export default function NotificationView() {
-  const todayNotifications = [
-    {
-      id: 1,
-      type: "success",
-      title: "Xử lý hoàn tất",
-      time: "10:45 AM",
-      description: "Video \"Hội thảo Python 2024\" đã sẵn sàng. Bạn có thể xem và tải xuống bản ghi ngay bây giờ.",
-      actionText: "Mở tệp",
-      actionLink: "#"
-    },
-    {
-      id: 2,
-      type: "error",
-      title: "Lỗi xử lý",
-      time: "08:15 AM",
-      description: "File \"Phỏng vấn_01.mp4\" gặp sự cố định dạng. Vui lòng kiểm tra lại định dạng file hoặc kích thước trước khi thử lại.",
-    }
-  ];
-
-  const pastNotifications = [
-    {
-      id: 3,
-      type: "info",
-      title: "Bản cập nhật mới",
-      time: "Hôm qua, 14:30",
-      description: "Phiên bản v2.5 hiện đã có sẵn với cải tiến model Whisper, giúp tăng độ chính xác lên đến 15% cho tiếng Việt.",
-    },
-    {
-      id: 4,
-      type: "success",
-      title: "Xử lý hoàn tất",
-      time: "12 Thg 10",
-      description: "Video \"Weekly Sync 45\" đã được chuyển đổi thành văn bản thành công.",
-    }
-  ];
+  const todayNotifications: any[] = [];
+  const pastNotifications: any[] = [];
 
   const renderIcon = (type: string) => {
     switch (type) {
@@ -56,32 +23,38 @@ export default function NotificationView() {
         <div className="h-px bg-white/20 flex-1"></div>
       </div>
       <div className="space-y-4">
-        {notifications.map((notif) => (
-          <div 
-            key={notif.id} 
-            className={`border p-6 flex flex-col md:flex-row md:items-start transition-colors ${
-              notif.type === 'error' ? 'border-red-500 hover:border-red-400 bg-red-500/5' : 
-              notif.type === 'success' && title === 'Hôm nay' ? 'border-[#FF3E00] hover:border-[#FF3E00] bg-[#FF3E00]/5' : 
-              'border-white/10 hover:border-white/30'
-            }`}
-          >
-            <div className="flex-1 min-w-0 pr-6">
-              <div className="flex justify-between items-start mb-3">
-                <h4 className="text-2xl font-black uppercase tracking-tighter text-white">{notif.title}</h4>
-              </div>
-              <p className="text-sm font-mono text-white/60 leading-relaxed mb-4">{notif.description}</p>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF3E00]">{notif.time}</span>
-                {notif.actionText && (
-                  <button className="bg-white text-black hover:bg-[#FF3E00] hover:text-white px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-colors">
-                    {notif.actionText}
-                  </button>
-                )}
+        {notifications.length === 0 ? (
+          <div className="border border-white/10 p-8 text-center text-white/40 font-bold uppercase tracking-widest text-[10px]">
+            Không có thông báo nào.
+          </div>
+        ) : (
+          notifications.map((notif) => (
+            <div 
+              key={notif.id} 
+              className={`border p-6 flex flex-col md:flex-row md:items-start transition-colors ${
+                notif.type === 'error' ? 'border-red-500 hover:border-red-400 bg-red-500/5' : 
+                notif.type === 'success' && title === 'Hôm nay' ? 'border-[#FF3E00] hover:border-[#FF3E00] bg-[#FF3E00]/5' : 
+                'border-white/10 hover:border-white/30'
+              }`}
+            >
+              <div className="flex-1 min-w-0 pr-6">
+                <div className="flex justify-between items-start mb-3">
+                  <h4 className="text-2xl font-black uppercase tracking-tighter text-white">{notif.title}</h4>
+                </div>
+                <p className="text-sm font-mono text-white/60 leading-relaxed mb-4">{notif.description}</p>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF3E00]">{notif.time}</span>
+                  {notif.actionText && (
+                    <button className="bg-white text-black hover:bg-[#FF3E00] hover:text-white px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-colors">
+                      {notif.actionText}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
