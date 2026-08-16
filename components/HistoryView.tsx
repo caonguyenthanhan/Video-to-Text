@@ -1,7 +1,18 @@
 import { History, Clock, HardDrive, Filter, FileText, CheckCircle2, AlertCircle, RotateCcw, Search } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 
 export default function HistoryView() {
   const records: any[] = [];
+
+  const productivityData = [
+    { day: "Thứ 2", time: 120 },
+    { day: "Thứ 3", time: 45 },
+    { day: "Thứ 4", time: 210 },
+    { day: "Thứ 5", time: 80 },
+    { day: "Thứ 6", time: 150 },
+    { day: "Thứ 7", time: 300 },
+    { day: "Chủ nhật", time: 0 },
+  ];
 
   return (
     <div className="space-y-8">
@@ -45,6 +56,39 @@ export default function HistoryView() {
           <div className="h-1 w-full bg-white/10">
             <div className="h-full bg-[#FF3E00] w-[24%]"></div>
           </div>
+        </div>
+      </div>
+
+      {/* Productivity Chart */}
+      <div className="border border-white/10 p-8 mb-16 theme-border">
+        <h3 className="text-xl font-black uppercase tracking-wider text-white theme-text mb-6">Năng Suất Bóc Băng (Phút)</h3>
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={productivityData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+              <XAxis 
+                dataKey="day" 
+                stroke="rgba(255,255,255,0.4)" 
+                fontSize={10} 
+                tickLine={false} 
+                axisLine={false} 
+                className="font-bold uppercase tracking-widest"
+              />
+              <YAxis 
+                stroke="rgba(255,255,255,0.4)" 
+                fontSize={10} 
+                tickLine={false} 
+                axisLine={false}
+                className="font-bold"
+              />
+              <Tooltip 
+                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                contentStyle={{ backgroundColor: '#0A0A0A', borderColor: 'rgba(255,255,255,0.2)', fontSize: '12px', fontWeight: 'bold' }}
+                itemStyle={{ color: '#FF3E00' }}
+              />
+              <Bar dataKey="time" fill="#FF3E00" radius={[4, 4, 0, 0]} barSize={40} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

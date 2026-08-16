@@ -23,11 +23,15 @@ export default function ConvertView() {
 
   const [isDragging, setIsDragging] = useState(false);
 
-  // Khôi phục bản nháp (draft) từ localStorage khi khởi động
+  // Khôi phục bản nháp (draft) từ sessionStorage khi khởi động
   useEffect(() => {
-    const savedDraft = localStorage.getItem('transcript_draft');
-    if (savedDraft) {
-      setTranscript(savedDraft);
+    try {
+      const savedDraft = sessionStorage.getItem('transcript_draft');
+      if (savedDraft) {
+        setTranscript(savedDraft);
+      }
+    } catch (e) {
+      console.warn("Could not access sessionStorage", e);
     }
   }, []);
 
@@ -36,8 +40,12 @@ export default function ConvertView() {
     if (!transcript) return;
     
     const handler = setTimeout(() => {
-      localStorage.setItem('transcript_draft', transcript);
-      setLastSaved(new Date());
+      try {
+        sessionStorage.setItem('transcript_draft', transcript);
+        setLastSaved(new Date());
+      } catch (e) {
+        console.warn("Could not write to sessionStorage", e);
+      }
     }, 1500);
 
     return () => {

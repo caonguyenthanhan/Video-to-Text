@@ -6,18 +6,26 @@ export default function ConfigView() {
   const [theme, setTheme] = useState("dark");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("app_theme") || "dark";
-    setTheme(savedTheme);
-    if (savedTheme === "light") {
-      document.documentElement.classList.add("light-mode");
-    } else {
-      document.documentElement.classList.remove("light-mode");
+    try {
+      const savedTheme = localStorage.getItem("app_theme") || "dark";
+      setTheme(savedTheme);
+      if (savedTheme === "light") {
+        document.documentElement.classList.add("light-mode");
+      } else {
+        document.documentElement.classList.remove("light-mode");
+      }
+    } catch (e) {
+      console.warn("Could not access localStorage", e);
     }
   }, []);
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
-    localStorage.setItem("app_theme", newTheme);
+    try {
+      localStorage.setItem("app_theme", newTheme);
+    } catch (e) {
+      console.warn("Could not write to localStorage", e);
+    }
     if (newTheme === "light") {
       document.documentElement.classList.add("light-mode");
     } else {
